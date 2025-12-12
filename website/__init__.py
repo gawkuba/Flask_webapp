@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path
+from flask_login import LoginManager
 
 from typing_extensions import Any
 
@@ -14,6 +15,7 @@ def create_app() -> Flask:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     db.init_app(app)
 
+
     from .views import views
     from .auth import auth
 
@@ -23,6 +25,14 @@ def create_app() -> Flask:
     from .models import User, Note
 
     create_database(app)
+
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(cred):
+        return User.query.get(int(cred))
 
     return app
 
